@@ -64,8 +64,8 @@ jobs:
         with:
           # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./releases/kubernetes-pfsense-controller-${{ steps.source_info.outputs.SOURCE_TAG }}.phar
-          asset_name: kubernetes-pfsense-controller-${{ steps.source_info.outputs.SOURCE_TAG }}.phar
+          asset_path: ./releases/kubernetes-opnsense-controller-${{ steps.source_info.outputs.SOURCE_TAG }}.phar
+          asset_name: kubernetes-opnsense-controller-${{ steps.source_info.outputs.SOURCE_TAG }}.phar
           asset_content_type: application/zip
 
       - name: docker build

@@ -2,8 +2,8 @@
 
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-export DOCKER_ORG="travisghansen"
-export DOCKER_PROJECT="kubernetes-pfsense-controller"
+export DOCKER_ORG="moellere"
+export DOCKER_PROJECT="kubernetes-opnsense-controller"
 export DOCKER_REPO="${DOCKER_ORG}/${DOCKER_PROJECT}"
 
 if [[ $GITHUB_REF == refs/tags/* ]]; then

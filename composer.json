@@ -7,7 +7,7 @@
     "homepage": "https://github.com/jules-labs/kubernetes-opnsense-controller",
     "authors": [
         {
-            "name" : "Travis Glenn Hansen"
+            "name" : ["Travis Glenn Hansen - Original pfSense", "Enoch Moeller - Initial OPNSense Fork"]
         }
     ],
     "require": {

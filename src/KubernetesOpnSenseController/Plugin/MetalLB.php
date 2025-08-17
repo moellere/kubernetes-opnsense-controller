@@ -1,12 +1,12 @@
 <?php
 
-namespace KubernetesPfSenseController\Plugin;
+namespace KubernetesOPNSenseController\Plugin;
 
 /**
  * Purpose of plugin is to sync cluster node changes to the appropriate bgp implementation configuration.
  *
  * Class MetalLb
- * @package KubernetesPfSenseController\Plugin
+ * @package KubernetesOPNSenseController\Plugin
  */
 use KubernetesOpnSenseController\Plugin\OpnSenseAbstract;
 
@@ -71,7 +71,7 @@ class MetalLB extends OpnSenseAbstract
     }
 
     /**
-     * Update pfSense state
+     * Update OPNSense state
      *
      * @return bool
      */
@@ -92,7 +92,7 @@ class MetalLB extends OpnSenseAbstract
     }
 
     /**
-     * Update pfSense state for bgp implementation
+     * Update OPNSense state for bgp implementation
      *
      * @return bool
      */

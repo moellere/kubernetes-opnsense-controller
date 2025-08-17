@@ -14,6 +14,6 @@ RUN \
     && docker-php-ext-enable yaml \
     && apk del .phpize-deps
 
-COPY releases/docker.phar /usr/local/bin/kubernetes-pfsense-controller
+COPY releases/docker.phar /usr/local/bin/kubernetes-opnsense-controller
 
-CMD ["kubernetes-pfsense-controller"]
+CMD ["kubernetes-opnsense-controller"]

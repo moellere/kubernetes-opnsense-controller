@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   namespace: kube-system
-  name: kubernetes-pfsense-controller-config
+  name: kubernetes-opnsense-controller-config
 data:
   config: |
     controller-id: "my-cluster"
@@ -35,7 +35,7 @@ data:
         enabled: true
         ingressLabelSelector:
         ingressFieldSelector:
-        # works in conjunction with the ingress annotation 'haproxy-ingress-proxy.pfsense.org/enabled'
+        # works in conjunction with the ingress annotation 'haproxy-ingress-proxy.opnsense.org/enabled'
         # if defaultEnabled is empty or true, you can disable specific ingresses by setting the annotation to false
         # if defaultEnabled is false, you can enable specific ingresses by setting the annotation to true
         defaultEnabled: true
@@ -43,7 +43,7 @@ data:
         defaultBackend: traefik
         # by default anything is allowed
         #allowedHostRegex: "/.*/"
-      pfsense-dns-services:
+      opnsense-dns-services:
         enabled: true
         serviceLabelSelector:
         serviceFieldSelector:
@@ -53,11 +53,11 @@ data:
             enabled: true
           unbound:
             enabled: true
-      pfsense-dns-ingresses:
+      opnsense-dns-ingresses:
         enabled: true
         ingressLabelSelector:
         ingressFieldSelector:
-        # works in conjunction with the ingress annotation 'dns.pfsense.org/enabled'
+        # works in conjunction with the ingress annotation 'dns.opnsense.org/enabled'
         # if defaultEnabled is empty or true, you can disable specific ingresses by setting the annotation to false
         # if defaultEnabled is false, you can enable specific ingresses by setting the annotation to true
         defaultEnabled: true
@@ -67,7 +67,7 @@ data:
             enabled: true
           unbound:
             enabled: true
-      pfsense-dns-haproxy-ingress-proxy:
+      opnsense-dns-haproxy-ingress-proxy:
         enabled: true
         #allowedHostRegex: "/.*/"
         dnsBackends:
