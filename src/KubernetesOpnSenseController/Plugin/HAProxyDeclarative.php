@@ -10,7 +10,9 @@ namespace KubernetesPfSenseController\Plugin;
  * Class HAProxyDeclarative
  * @package KubernetesPfSenseController\Plugin
  */
-class HAProxyDeclarative extends PfSenseAbstract
+use KubernetesOpnSenseController\Plugin\OpnSenseAbstract;
+
+class HAProxyDeclarative extends OpnSenseAbstract
 {
     use CommonTrait;
     /**
@@ -114,7 +116,7 @@ class HAProxyDeclarative extends PfSenseAbstract
             }
         }
 
-        $haProxyConfig = HAProxyConfig::getInstalledPackagesConfigBlock($this->getController()->getRegistryItem('pfSenseClient'), 'haproxy');
+        $haProxyConfig = HAProxyConfig::getInstalledPackagesConfigBlock($this->getController()->getRegistryItem('opnSenseClient'), 'haproxy');
 
         if (!empty($resources['backend'])) {
             foreach ($resources['backend'] as $backend) {
@@ -156,7 +158,6 @@ class HAProxyDeclarative extends PfSenseAbstract
         }
 
         try {
-            $this->savePfSenseConfigBlock($haProxyConfig);
             $this->reloadHAProxy();
 
             // persist the new set of managed resources

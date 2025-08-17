@@ -6,19 +6,21 @@ namespace KubernetesPfSenseController\Plugin;
  * Class DNSIngresses
  * @package KubernetesPfSenseController\Plugin
  */
-class DNSIngresses extends PfSenseAbstract
+use KubernetesOpnSenseController\Plugin\OpnSenseAbstract;
+
+class DNSIngresses extends OpnSenseAbstract
 {
     use CommonTrait;
     use DNSResourceTrait;
     /**
      * Unique Plugin ID
      */
-    public const PLUGIN_ID = 'pfsense-dns-ingresses';
+    public const PLUGIN_ID = 'opnsense-dns-ingresses';
 
     /**
      * Annotation to override default enabled
      */
-    public const ENABLED_ANNOTATION_NAME = 'dns.pfsense.org/enabled';
+    public const ENABLED_ANNOTATION_NAME = 'dns.opnsense.org/enabled';
 
     /**
      * Init the plugin

@@ -8,7 +8,9 @@ namespace KubernetesPfSenseController\Plugin;
  * Class DNSHAProxyIngressProxy
  * @package KubernetesPfSenseController\Plugin
  */
-class DNSHAProxyIngressProxy extends PfSenseAbstract
+use KubernetesOpnSenseController\Plugin\OpnSenseAbstract;
+
+class DNSHAProxyIngressProxy extends OpnSenseAbstract
 {
     use CommonTrait;
     /**
@@ -127,7 +129,7 @@ class DNSHAProxyIngressProxy extends PfSenseAbstract
             return true;
         }
 
-        $haProxyConfig = HAProxyConfig::getInstalledPackagesConfigBlock($this->getController()->getRegistryItem('pfSenseClient'), 'haproxy');
+        $haProxyConfig = HAProxyConfig::getInstalledPackagesConfigBlock($this->getController()->getRegistryItem('opnSenseClient'), 'haproxy');
 
         $store = $this->getStore();
         if (empty($store)) {
@@ -172,14 +174,14 @@ class DNSHAProxyIngressProxy extends PfSenseAbstract
         }
 
         if ($dnsmasqEnabled) {
-            $dnsmasqConfig = PfSenseConfigBlock::getRootConfigBlock($this->getController()->getRegistryItem('pfSenseClient'), 'dnsmasq');
+            $dnsmasqConfig = ConfigBlock::getRootConfigBlock($this->getController()->getRegistryItem('opnSenseClient'), 'dnsmasq');
             if (!key_exists('hosts', $dnsmasqConfig->data)) {
                 $dnsmasqConfig->data['hosts'] = [];
             }
         }
 
         if ($unboundEnabled) {
-            $unboundConfig = PfSenseConfigBlock::getRootConfigBlock($this->getController()->getRegistryItem('pfSenseClient'), 'unbound');
+            $unboundConfig = ConfigBlock::getRootConfigBlock($this->getController()->getRegistryItem('opnSenseClient'), 'unbound');
             if (!key_exists('hosts', $unboundConfig->data)) {
                 $unboundConfig->data['hosts'] = [];
             }
@@ -272,20 +274,15 @@ class DNSHAProxyIngressProxy extends PfSenseAbstract
 
         try {
             if ($dnsmasqEnabled && !empty($dnsmasqConfig)) {
-                $this->savePfSenseConfigBlock($dnsmasqConfig);
                 $this->reloadDnsmasq();
             }
 
             if ($unboundEnabled && !empty($unboundConfig)) {
-                $this->savePfSenseConfigBlock($unboundConfig);
                 $this->reloadUnbound();
             }
 
             $store['managed_hosts'] = $managedHostsPreSave;
             $this->saveStore($store);
-
-            // reload DHCP sesrvice
-            $this->reloadDHCP();
 
             return true;
         } catch (\Exception $e) {

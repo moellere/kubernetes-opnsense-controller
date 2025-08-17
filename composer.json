@@ -1,10 +1,10 @@
 {
-    "name": "travisghansen/kubernetes-pfsense-controller",
+    "name": "jules-labs/kubernetes-opnsense-controller",
     "type": "project",
-    "description": "Integrate Kubernetes and pfSense",
+    "description": "Integrate Kubernetes and OPNsense",
     "license": "Apache-2.0",
-    "keywords": ["kubernetes", "api", "client", "k8s", "php", "controller", "pfsense", "firewall", "cluster", "metallb", "dns", "ingress", "ingresses", "loadbalancer", "haproxy"],
-    "homepage": "https://github.com/travisghansen/kubernetes-pfsense-controller/",
+    "keywords": ["kubernetes", "api", "client", "k8s", "php", "controller", "opnsense", "firewall", "cluster", "metallb", "dns", "ingress", "ingresses", "loadbalancer", "haproxy"],
+    "homepage": "https://github.com/jules-labs/kubernetes-opnsense-controller",
     "authors": [
         {
             "name" : "Travis Glenn Hansen"
@@ -21,18 +21,20 @@
         "travisghansen/kubernetes-client-php": "0.3.*",
         "vlucas/phpdotenv": "^2.5",
         "composer/semver": "^3.2",
-        "laminas/laminas-xmlrpc": "^2.10"
+        "guzzlehttp/guzzle": "^7.0"
     },
     "autoload": {
-        "psr-0": {"KubernetesPfSenseController\\": "src/"}
+        "psr-4": {
+            "KubernetesOpnSenseController\\": "src/KubernetesOpnSenseController"
+        }
     },
     "scripts": {
         "buildphar": [
             "@removevendor",
             "@composer install --prefer-dist --no-dev --no-progress --no-suggest --optimize-autoloader --classmap-authoritative --apcu-autoloader --ignore-platform-reqs --ansi --no-interaction",
             "@downloadpharbuilder",
-            "@php -d phar.readonly=0 phar-builder.phar --name=kubernetes-pfsense-controller-${APP_VERSION:-$(git describe --exact-match --tags 2>/dev/null || git symbolic-ref --short -q HEAD)}.phar package composer.json",
-            "cp releases/kubernetes-pfsense-controller-${APP_VERSION:-$(git describe --exact-match --tags 2>/dev/null || git symbolic-ref --short -q HEAD)}.phar releases/docker.phar",
+            "@php -d phar.readonly=0 phar-builder.phar --name=kubernetes-opnsense-controller-${APP_VERSION:-$(git describe --exact-match --tags 2>/dev/null || git symbolic-ref --short -q HEAD)}.phar package composer.json",
+            "cp releases/kubernetes-opnsense-controller-${APP_VERSION:-$(git describe --exact-match --tags 2>/dev/null || git symbolic-ref --short -q HEAD)}.phar releases/docker.phar",
             "chmod +x releases/*.phar",
             "ls -l releases/*.phar"
         ],

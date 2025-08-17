@@ -50,75 +50,71 @@ trait DNSResourceTrait
         }
 
         try {
-            // get store data
-            $store = $this->getStore();
-            if (empty($store)) {
-                $store = [];
-            }
-
-            $managedHosts = $store['managed_hosts'] ?? [];
-
-            // actually remove them from config
-            $toDeleteHosts = array_diff(@array_keys($managedHosts), @array_keys($managedHostsPreSave));
-            foreach ($toDeleteHosts as $hostName) {
-                $this->log("deleting hostname entry for host: {$hostName}");
-            }
-
-            $dnsmasqConfig = null;
-            $unboundConfig = null;
+            $client = $this->getController()->getRegistryItem('opnSenseClient');
 
             if ($dnsmasqEnabled) {
-                $dnsmasqConfig = PfSenseConfigBlock::getRootConfigBlock($this->getController()->getRegistryItem('pfSenseClient'), 'dnsmasq');
-                if (!isset($dnsmasqConfig->data['hosts']) || !is_array($dnsmasqConfig->data['hosts'])) {
-                    $dnsmasqConfig->data['hosts'] = [];
+                $existingHosts = $client->get('/api/dnsmasq/settings/search_host');
+                $existingHostsByName = [];
+                foreach ($existingHosts['rows'] as $row) {
+                    $existingHostsByName[$row['hostname']] = $row;
                 }
+
                 foreach ($hosts as $host) {
-                    Utils::putListItemMultiKey($dnsmasqConfig->data['hosts'], $host, ['host', 'domain']);
+                    $hostname = $host['host'] . '.' . $host['domain'];
+                    if (isset($existingHostsByName[$hostname])) {
+                        // update
+                        $uuid = $existingHostsByName[$hostname]['uuid'];
+                        $client->post('/api/dnsmasq/settings/set_host/' . $uuid, ['host' => $host]);
+                        unset($existingHostsByName[$hostname]);
+                    } else {
+                        // add
+                        $client->post('/api/dnsmasq/settings/add_host', ['host' => $host]);
+                    }
                 }
 
                 foreach ($toDeleteHosts as $hostName) {
-                    $itemId = [
-                        'host' => explode('.', $hostName, 2)[0],
-                        'domain' => explode('.', $hostName, 2)[1],
-                    ];
-                    Utils::removeListItemMultiKey($dnsmasqConfig->data['hosts'], $itemId, ['host', 'domain']);
-                }
-            }
-
-            if ($unboundEnabled) {
-                $unboundConfig = PfSenseConfigBlock::getRootConfigBlock($this->getController()->getRegistryItem('pfSenseClient'), 'unbound');
-                if (!isset($unboundConfig->data['hosts']) || !is_array($unboundConfig->data['hosts'])) {
-                    $unboundConfig->data['hosts'] = [];
-                }
-                foreach ($hosts as $host) {
-                    Utils::putListItemMultiKey($unboundConfig->data['hosts'], $host, ['host', 'domain']);
+                    if (isset($existingHostsByName[$hostName])) {
+                        $uuid = $existingHostsByName[$hostName]['uuid'];
+                        $client->post('/api/dnsmasq/settings/del_host/' . $uuid);
+                    }
                 }
 
-                foreach ($toDeleteHosts as $hostName) {
-                    $itemId = [
-                        'host' => explode('.', $hostName, 2)[0],
-                        'domain' => explode('.', $hostName, 2)[1],
-                    ];
-                    Utils::removeListItemMultiKey($unboundConfig->data['hosts'], $itemId, ['host', 'domain']);
-                }
-            }
-
-            if ($dnsmasqEnabled && !empty($dnsmasqConfig)) {
-                $this->savePfSenseConfigBlock($dnsmasqConfig);
                 $this->reloadDnsmasq();
             }
 
-            if ($unboundEnabled && !empty($unboundConfig)) {
-                $this->savePfSenseConfigBlock($unboundConfig);
+            if ($unboundEnabled) {
+                $existingHosts = $client->get('/api/unbound/settings/search_host_override');
+                $existingHostsByName = [];
+                foreach ($existingHosts['rows'] as $row) {
+                    $existingHostsByName[$row['hostname']] = $row;
+                }
+
+                foreach ($hosts as $host) {
+                    $hostname = $host['host'] . '.' . $host['domain'];
+                    if (isset($existingHostsByName[$hostname])) {
+                        // update
+                        $uuid = $existingHostsByName[$hostname]['uuid'];
+                        $client->post('/api/unbound/settings/set_host_override/' . $uuid, ['host' => $host]);
+                        unset($existingHostsByName[$hostname]);
+                    } else {
+                        // add
+                        $client->post('/api/unbound/settings/add_host_override', ['host' => $host]);
+                    }
+                }
+
+                foreach ($toDeleteHosts as $hostName) {
+                    if (isset($existingHostsByName[$hostName])) {
+                        $uuid = $existingHostsByName[$hostName]['uuid'];
+                        $client->post('/api/unbound/settings/del_host_override/' . $uuid);
+                    }
+                }
+
                 $this->reloadUnbound();
             }
 
             // save data to store
             $store['managed_hosts'] = $managedHostsPreSave;
             $this->saveStore($store);
-
-            // reload DHCP sesrvice
-            $this->reloadDHCP();
 
             return true;
         } catch (\Exception $e) {
