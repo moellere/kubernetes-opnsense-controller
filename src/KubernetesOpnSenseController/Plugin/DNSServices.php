@@ -5,19 +5,21 @@ namespace KubernetesPfSenseController\Plugin;
 /**
  * Plugin exists to manage services of type LoadBalancer.  It will work with dnsmasq, unbound, or both.  To set the
  * hostname simply add an annotation to the the service as follows:
- * dns.pfsense.org/hostname: foo.bar.baz
+ * dns.opnsense.org/hostname: foo.bar.baz
  *
  * Class DNSServices
  * @package KubernetesPfSenseController\Plugin
  */
-class DNSServices extends PfSenseAbstract
+use KubernetesOpnSenseController\Plugin\OpnSenseAbstract;
+
+class DNSServices extends OpnSenseAbstract
 {
     use CommonTrait;
     use DNSResourceTrait;
     /**
      * Unique plugin ID
      */
-    public const PLUGIN_ID = 'pfsense-dns-services';
+    public const PLUGIN_ID = 'opnsense-dns-services';
 
     /**
      * Init the plugin
