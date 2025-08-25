@@ -31,7 +31,7 @@
     "scripts": {
         "buildphar": [
             "@removevendor",
-            "@composer install --prefer-dist --no-dev --no-progress --optimize-autoloader --classmap-authoritative --apcu-autoloader --ignore-platform-reqs --ansi --no-interaction --with-all-dependencies",
+            "@composer install --prefer-dist --no-dev --no-progress --optimize-autoloader --classmap-authoritative --apcu-autoloader --ignore-platform-reqs --ansi --no-interaction",
             "@downloadpharbuilder",
             "@php -d phar.readonly=0 phar-builder.phar --name=kubernetes-opnsense-controller-${APP_VERSION:-$(git describe --exact-match --tags 2>/dev/null || git symbolic-ref --short -q HEAD)}.phar package composer.json",
             "cp releases/kubernetes-opnsense-controller-${APP_VERSION:-$(git describe --exact-match --tags 2>/dev/null || git symbolic-ref --short -q HEAD)}.phar releases/docker.phar",
