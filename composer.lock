@@ -1090,6 +1090,29 @@
             "time": "2016-08-06T14:39:51+00:00"
         },
         {
+            "name": "guzzlehttp/guzzle",
+            "version": "7.8.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/guzzle/guzzle.git",
+                "reference": "21ae43d46f5b90709f193f94628a8d11c75c8736"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/21ae43d46f5b90709f193f94628a8d11c75c8736",
+                "reference": "21ae43d46f5b90709f193f94628a8d11c75c8736",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/promises": "^2.0",
+                "guzzlehttp/psr7": "^2.6",
+                "php": ">=7.2.5",
+                "psr/http-client": "^1.0.1",
+                "psr/http-factory": "^1.0",
+                "psr/http-message": "^1.0 || ^2.0"
+            }
+        },
+        {
             "name": "symfony/deprecation-contracts",
             "version": "v3.2.0",
             "source": {
