@@ -1,10 +1,10 @@
 <?php
 
-namespace KubernetesPfSenseController\Plugin;
+namespace KubernetesOpnSenseController\Plugin;
 
 /**
- * Purpose of this plugin is to create a mirrored configuration of HAProxy running on pfSense to the provided ingress
- * controller already running (likely on NodePort or as a LoadBalancer) in the cluster.  The idea is that pfSense
+ * Purpose of this plugin is to create a mirrored configuration of HAProxy running on opnsense to the provided ingress
+ * controller already running (likely on NodePort or as a LoadBalancer) in the cluster.  The idea is that opnsense
  * running HAProxy receives traffic external to the cluster, forwards it to an existing ingress, which forwards it to
  * the appropriate pods.
  *
@@ -15,11 +15,11 @@ namespace KubernetesPfSenseController\Plugin;
  *
  * You may override the defaultFrontend and defaultBackend values on a per-ingress basis with annotations set on the
  * ingress:
- * haproxy-ingress-proxy.pfsense.org/frontend: test
- * haproxy-ingress-proxy.pfsense.org/backend: test
+ * haproxy-ingress-proxy.opnsense.org/frontend: test
+ * haproxy-ingress-proxy.opnsense.org/backend: test
  *
  * Class HAProxyIngressProxy
- * @package KubernetesPfSenseController\Plugin
+ * @package KubernetesOpnSenseController\Plugin
  */
 use KubernetesOpnSenseController\Plugin\OpnSenseAbstract;
 
@@ -129,7 +129,7 @@ class HAProxyIngressProxy extends OpnSenseAbstract
     }
 
     /**
-     * Update pfSense state
+     * Update opnsense state
      *
      * @return bool
      */

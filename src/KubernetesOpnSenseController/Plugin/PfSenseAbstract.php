@@ -1,22 +1,22 @@
 <?php
 
-namespace KubernetesPfSenseController\Plugin;
+namespace KubernetesOpnSenseController\Plugin;
 
 /**
  * Common methods to interact with pfSense
  *
- * Class PfSenseAbstract
- * @package KubernetesPfSenseController\Plugin
+ * Class OpnSenseAbstract
+ * @package KubernetesOpnSenseController\Plugin
  */
-abstract class PfSenseAbstract extends \KubernetesController\Plugin\AbstractPlugin
+abstract class OpnSenseAbstract extends \KubernetesController\Plugin\AbstractPlugin
 {
     /**
      * Save a pfSense configuration block
      *
-     * @param PfSenseConfigBlock $config
+     * @param OpnSenseConfigBlock $config
      * @throws \Exception
      */
-    public function savePfSenseConfigBlock(PfSenseConfigBlock $config)
+    public function saveOpnSenseConfigBlock(OpnSenseConfigBlock $config)
     {
         try {
             $config->save();
@@ -39,7 +39,7 @@ abstract class PfSenseAbstract extends \KubernetesController\Plugin\AbstractPlug
         $pfSenseClient = $this->getController()->getRegistryItem('pfSenseClient');
 
         try {
-            return $pfSenseClient->call('pfsense.exec_php', [$code]);
+            return $pfSenseClient->call('opnsense.exec_php', [$code]);
         } catch (\Exception $e) {
             $this->log('failed exec_php call: '.$e->getMessage().' ('.$e->getCode().')');
             throw $e;

@@ -1,6 +1,6 @@
 <?php
 
-namespace KubernetesPfSenseController\Plugin;
+namespace KubernetesOpnSenseController\Plugin;
 
 use KubernetesClient\Client;
 
@@ -8,7 +8,7 @@ use KubernetesClient\Client;
  * Used by the plugins to provide standard set of features
  *
  * Trait CommonTrait
- * @package KubernetesPfSenseController\Plugin
+ * @package KubernetesOpnSenseController\Plugin
  */
 trait CommonTrait
 {

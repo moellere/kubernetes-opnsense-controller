@@ -1,6 +1,6 @@
 <?php
 
-namespace KubernetesPfSenseController;
+namespace KubernetesOpnSenseController;
 
 class Controller extends \KubernetesController\Controller
 {

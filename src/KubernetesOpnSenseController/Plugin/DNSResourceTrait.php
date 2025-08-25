@@ -1,17 +1,17 @@
 <?php
 
-namespace KubernetesPfSenseController\Plugin;
+namespace KubernetesOpnSenseController\Plugin;
 
 /**
  * Common code for DNS plugins
  *
  * Trait DNSResourceTrait
- * @package KubernetesPfSenseController\Plugin
+ * @package KubernetesOpnSenseController\Plugin
  */
 trait DNSResourceTrait
 {
     /**
-     * Update pfSense state
+     * Update opnSense state
      *
      * @return bool
      */

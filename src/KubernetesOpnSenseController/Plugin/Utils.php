@@ -1,12 +1,12 @@
 <?php
 
-namespace KubernetesPfSenseController\Plugin;
+namespace KubernetesOpnSenseController\Plugin;
 
 /**
  * Utilities
  *
  * Class Utils
- * @package KubernetesPfSenseController\Plugin
+ * @package KubernetesOpnSenseController\Plugin
  */
 class Utils
 {

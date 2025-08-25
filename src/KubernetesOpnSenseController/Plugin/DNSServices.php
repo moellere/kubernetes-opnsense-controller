@@ -1,6 +1,6 @@
 <?php
 
-namespace KubernetesPfSenseController\Plugin;
+namespace KubernetesOpnSenseController\Plugin;
 
 /**
  * Plugin exists to manage services of type LoadBalancer.  It will work with dnsmasq, unbound, or both.  To set the
@@ -8,7 +8,7 @@ namespace KubernetesPfSenseController\Plugin;
  * dns.opnsense.org/hostname: foo.bar.baz
  *
  * Class DNSServices
- * @package KubernetesPfSenseController\Plugin
+ * @package KubernetesOpnSenseController\Plugin
  */
 use KubernetesOpnSenseController\Plugin\OpnSenseAbstract;
 

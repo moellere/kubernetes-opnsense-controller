@@ -1,10 +1,10 @@
 <?php
 
-namespace KubernetesPfSenseController\Plugin;
+namespace KubernetesOpnSenseController\Plugin;
 
 /**
  * Class DNSIngresses
- * @package KubernetesPfSenseController\Plugin
+ * @package KubernetesOpnSenseController\Plugin
  */
 use KubernetesOpnSenseController\Plugin\OpnSenseAbstract;
 

@@ -1,14 +1,14 @@
 <?php
 
-namespace KubernetesPfSenseController\Plugin;
+namespace KubernetesOpnSenseController\Plugin;
 
 /**
  * Purpose of this plugin is to facilitate creating HAProxy frontends/backends as kubernetes resources.  Generally the
- * interface is a pass-through to the pfSense configuration structure with a couple niceties added to dynamically
+ * interface is a pass-through to the opnsense configuration structure with a couple niceties added to dynamically
  * maintain backend hosts based off of cluster nodes.
  *
  * Class HAProxyDeclarative
- * @package KubernetesPfSenseController\Plugin
+ * @package KubernetesOpnSenseController\Plugin
  */
 use KubernetesOpnSenseController\Plugin\OpnSenseAbstract;
 
@@ -42,14 +42,14 @@ class HAProxyDeclarative extends OpnSenseAbstract
 
         // initial load of configmaps
         $params = [
-            'labelSelector' => 'pfsense.org/type=declarative',
+            'labelSelector' => 'opnsense.org/type=declarative',
         ];
         $configmaps = $controller->getKubernetesClient()->createList('/api/v1/configmaps', $params)->get();
         $this->state['configmaps'] = $configmaps['items'];
 
         // watch for configmap changes
         $params = [
-            'labelSelector' => 'pfsense.org/type=declarative',
+            'labelSelector' => 'opnsense.org/type=declarative',
             'resourceVersion' => $configmaps['metadata']['resourceVersion'],
         ];
         $watch = $controller->getKubernetesClient()->createWatch('/api/v1/watch/configmaps', $params, $this->getWatchCallback('configmaps'));
@@ -88,7 +88,7 @@ class HAProxyDeclarative extends OpnSenseAbstract
     }
 
     /**
-     * Update pfSense state
+     * Update opnsense state
      *
      * @throws \Exception
      * @return bool

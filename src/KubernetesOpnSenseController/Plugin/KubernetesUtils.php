@@ -1,19 +1,19 @@
 <?php
 
-namespace KubernetesPfSenseController\Plugin;
+namespace KubernetesOpnSenseController\Plugin;
 
 /**
  * Used to interact with/parse Kubernetes resources
  *
  * Class KubernetesUtils
- * @package KubernetesPfSenseController\Plugin
+ * @package KubernetesOpnSenseController\Plugin
  */
 class KubernetesUtils
 {
     /**
      * Annotation used to set hostname on services (ie: LoadBalancer services)
      */
-    public const SERVICE_HOSTNAME_ANNOTATION = 'dns.pfsense.org/hostname';
+    public const SERVICE_HOSTNAME_ANNOTATION = 'dns.opnsense.org/hostname';
 
     public static function getResourceAnnotationValue($resource, $annotation)
     {

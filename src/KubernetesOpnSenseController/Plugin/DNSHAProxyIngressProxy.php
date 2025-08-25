@@ -1,12 +1,12 @@
 <?php
 
-namespace KubernetesPfSenseController\Plugin;
+namespace KubernetesOpnSenseController\Plugin;
 
 /**
  * Purpose..
  *
  * Class DNSHAProxyIngressProxy
- * @package KubernetesPfSenseController\Plugin
+ * @package KubernetesOpnSenseController\Plugin
  */
 use KubernetesOpnSenseController\Plugin\OpnSenseAbstract;
 
@@ -16,7 +16,7 @@ class DNSHAProxyIngressProxy extends OpnSenseAbstract
     /**
      * Unique plugin ID
      */
-    public const PLUGIN_ID = 'pfsense-dns-haproxy-ingress-proxy';
+    public const PLUGIN_ID = 'OpnSense-dns-haproxy-ingress-proxy';
 
     /**
      * Hash of haproxy-ingress-proxy state used to detect changes
@@ -107,7 +107,7 @@ class DNSHAProxyIngressProxy extends OpnSenseAbstract
     }
 
     /**
-     * Update pfSense state
+     * Update OpnSense state
      *
      * @return bool
      */
