@@ -31,13 +31,17 @@ class HAProxyIngressProxyPlugin:
             return
 
         # 4. Reconcile ACLs
-        self._reconcile_items('acl', desired_acls, current_acls)
+        acls_changed = self._reconcile_items('acl', desired_acls, current_acls)
 
         # 5. Reconcile Actions
         # We need to refresh the ACL list from OPNsense so we can link actions to the new ACL UUIDs
         refreshed_acls = self._get_opnsense_items('acl')
-        if refreshed_acls:
-            self._reconcile_actions(desired_actions, current_actions, refreshed_acls)
+        actions_changed = False
+        if refreshed_acls is not None:
+            actions_changed = self._reconcile_actions(desired_actions, current_actions, refreshed_acls)
+
+        if acls_changed or actions_changed:
+            self._apply_haproxy_changes()
 
     def _get_desired_state(self, ingresses):
         """
@@ -89,6 +93,7 @@ class HAProxyIngressProxyPlugin:
     def _reconcile_items(self, item_type, desired_map, current_map):
         """Generic reconciliation function for simple items like ACLs."""
         logging.info(f"Reconciling HAProxy {item_type}s...")
+        changes_made = False
 
         # Add/Update
         for name, data in desired_map.items():
@@ -97,19 +102,25 @@ class HAProxyIngressProxyPlugin:
                 # TODO: Check if update is needed
                 logging.info(f"Updating {item_type} '{name}' (UUID: {uuid})")
                 self._update_opnsense_item(item_type, uuid, data)
+                changes_made = True
             else:
                 logging.info(f"Adding new {item_type} '{name}'")
                 self._add_opnsense_item(item_type, data)
+                changes_made = True
 
         # Delete
         orphaned = {k: v for k, v in current_map.items() if k not in desired_map and k.startswith('kic-')}
         for name, item in orphaned.items():
             logging.info(f"Deleting orphaned {item_type}: {name}")
             self._delete_opnsense_item(item_type, item['uuid'])
+            changes_made = True
+
+        return changes_made
 
     def _reconcile_actions(self, desired_actions, current_actions, current_acls):
         """Specific reconciliation for actions to link ACL UUIDs."""
         logging.info("Reconciling HAProxy Actions...")
+        changes_made = False
 
         # Add/Update
         for name, data in desired_actions.items():
@@ -125,15 +136,20 @@ class HAProxyIngressProxyPlugin:
                 uuid = current_actions[name]['uuid']
                 logging.info(f"Updating action '{name}' (UUID: {uuid})")
                 self._update_opnsense_item('action', uuid, data)
+                changes_made = True
             else:
                 logging.info(f"Adding new action '{name}'")
                 self._add_opnsense_item('action', data)
+                changes_made = True
 
         # Delete (same as generic)
         orphaned = {k: v for k, v in current_actions.items() if k not in desired_actions and k.startswith('kic-')}
         for name, item in orphaned.items():
             logging.info(f"Deleting orphaned action: {name}")
             self._delete_opnsense_item('action', item['uuid'])
+            changes_made = True
+
+        return changes_made
 
 
     # --- Generic OPNsense API Functions (can be moved to a shared module) ---
@@ -170,3 +186,14 @@ class HAProxyIngressProxyPlugin:
             self.opnsense_client.post(endpoint)
         except Exception as e:
             logging.error(f"Failed to delete {item_type} with UUID {uuid}: {e}")
+
+    def _apply_haproxy_changes(self):
+        """
+        Applies the HAProxy changes by calling the reconfigure endpoint.
+        """
+        logging.info("Applying HAProxy configuration changes...")
+        endpoint = '/api/haproxy/service/reconfigure'
+        try:
+            self.opnsense_client.post(endpoint)
+        except Exception as e:
+            logging.error(f"Failed to apply HAProxy changes: {e}")

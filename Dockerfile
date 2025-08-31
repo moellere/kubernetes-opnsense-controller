@@ -13,5 +13,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the application source code into the container
 COPY src/ ./src/
 
-# Define the command to run the application
-CMD ["python", "src/main.py"]
+# Define the command to run the application as a module
+CMD ["python", "-m", "src.main"]
