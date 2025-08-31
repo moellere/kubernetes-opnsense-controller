@@ -58,8 +58,11 @@ class HAProxyDeclarativePlugin:
         desired_frontends = [r for r in desired_resources if r.get('type') == 'frontend']
 
         # Reconcile backends first, as frontends may depend on them
-        self._reconcile_backends(desired_backends)
-        self._reconcile_frontends(desired_frontends)
+        backends_changed = self._reconcile_backends(desired_backends)
+        frontends_changed = self._reconcile_frontends(desired_frontends)
+
+        if backends_changed or frontends_changed:
+            self._apply_haproxy_changes()
 
     def _reconcile_backends(self, desired_backends):
         current_backends = self._get_opnsense_items('backend')
@@ -67,41 +70,54 @@ class HAProxyDeclarativePlugin:
 
         desired_map = {b.get('definition', {}).get('name'): b for b in desired_backends if b.get('definition', {}).get('name')}
 
+        changes_made = False
         for name, backend_data in desired_map.items():
             resolved_backend = self._resolve_backend_servers(backend_data)
             if name in current_backends:
                 uuid = current_backends[name]['uuid']
+                # TODO: Add proper update detection
                 logging.info(f"Updating backend '{name}' (UUID: {uuid})")
                 self._update_opnsense_item('backend', uuid, resolved_backend['definition'])
+                changes_made = True
             else:
                 logging.info(f"Adding new backend '{name}'")
                 self._add_opnsense_item('backend', resolved_backend['definition'])
+                changes_made = True
 
         orphaned = {k: v for k, v in current_backends.items() if k not in desired_map}
         for name, backend in orphaned.items():
-            # TODO: Add a check to only delete managed backends, e.g., by a special description/label
+            # TODO: Add a check to only delete managed backends
             logging.info(f"Deleting orphaned backend: {name}")
             self._delete_opnsense_item('backend', backend['uuid'])
+            changes_made = True
+
+        return changes_made
 
     def _reconcile_frontends(self, desired_frontends):
         current_frontends = self._get_opnsense_items('frontend')
-        if current_frontends is None: return
+        if current_frontends is None: return False
 
         desired_map = {f.get('definition', {}).get('name'): f for f in desired_frontends if f.get('definition', {}).get('name')}
 
+        changes_made = False
         for name, frontend_data in desired_map.items():
             if name in current_frontends:
                 uuid = current_frontends[name]['uuid']
                 logging.info(f"Updating frontend '{name}' (UUID: {uuid})")
                 self._update_opnsense_item('frontend', uuid, frontend_data['definition'])
+                changes_made = True
             else:
                 logging.info(f"Adding new frontend '{name}'")
                 self._add_opnsense_item('frontend', frontend_data['definition'])
+                changes_made = True
 
         orphaned = {k: v for k, v in current_frontends.items() if k not in desired_map}
         for name, frontend in orphaned.items():
             logging.info(f"Deleting orphaned frontend: {name}")
             self._delete_opnsense_item('frontend', frontend['uuid'])
+            changes_made = True
+
+        return changes_made
 
     def _resolve_backend_servers(self, backend_data):
         if 'ha_servers' not in backend_data:
@@ -182,3 +198,14 @@ class HAProxyDeclarativePlugin:
             self.opnsense_client.post(endpoint)
         except Exception as e:
             logging.error(f"Failed to delete {item_type} with UUID {uuid}: {e}")
+
+    def _apply_haproxy_changes(self):
+        """
+        Applies the HAProxy changes by calling the reconfigure endpoint.
+        """
+        logging.info("Applying HAProxy configuration changes...")
+        endpoint = '/api/haproxy/service/reconfigure'
+        try:
+            self.opnsense_client.post(endpoint)
+        except Exception as e:
+            logging.error(f"Failed to apply HAProxy changes: {e}")
