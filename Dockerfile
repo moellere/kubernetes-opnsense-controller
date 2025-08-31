@@ -1,19 +1,17 @@
-FROM php:8.2-cli-alpine
+# Use an official Python runtime as a parent image
+FROM python:3.10-slim
 
-ARG TARGETPLATFORM
-ARG BUILDPLATFORM
+# Set the working directory in the container
+WORKDIR /usr/src/app
 
-RUN echo "I am running build on $BUILDPLATFORM, building for $TARGETPLATFORM"
+# Copy the requirements file into the container
+COPY requirements.txt ./
 
-RUN \
-    apk add --no-cache bzip2-dev \
-    && docker-php-ext-install bz2 pcntl bcmath \
-    && apk add --no-cache yaml-dev \
-    && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
-    && pecl install yaml \
-    && docker-php-ext-enable yaml \
-    && apk del .phpize-deps
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY releases/docker.phar /usr/local/bin/kubernetes-opnsense-controller
+# Copy the application source code into the container
+COPY src/ ./src/
 
-CMD ["kubernetes-opnsense-controller"]
+# Define the command to run the application
+CMD ["python", "src/main.py"]
