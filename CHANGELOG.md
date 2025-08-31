@@ -1,3 +1,10 @@
+# v0.2.1
+
+Released 2025-08-30
+
+- Some syntax correction, minor version update
+
+
 # v0.2.0
 
 Released 2025-08-30
