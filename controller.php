@@ -62,7 +62,7 @@ $options = [
 
 // expose the above
 
-$controller = new KubernetesopnsenseController\Controller($controllerName, $kubernetesClient, $options);
+$controller = new KubernetesOpnSenseController\Controller($controllerName, $kubernetesClient, $options);
 $kubernetesClient = $controller->getKubernetesClient();
 
 // register opnSenseClient
@@ -73,12 +73,12 @@ $kubernetesVersionInfo = $kubernetesClient->request("/version");
 $controller->setRegistryItem('kubernetesVersionInfo', $kubernetesVersionInfo);
 
 // plugins
-$controller->registerPlugin('\KubernetesopnsenseController\Plugin\MetalLB');
-$controller->registerPlugin('\KubernetesopnsenseController\Plugin\HAProxyDeclarative');
-$controller->registerPlugin('\KubernetesopnsenseController\Plugin\HAProxyIngressProxy');
-$controller->registerPlugin('\KubernetesopnsenseController\Plugin\DNSHAProxyIngressProxy');
-$controller->registerPlugin('\KubernetesopnsenseController\Plugin\DNSServices');
-$controller->registerPlugin('\KubernetesopnsenseController\Plugin\DNSIngresses');
+$controller->registerPlugin('\KubernetesOpnSenseController\Plugin\MetalLB');
+$controller->registerPlugin('\KubernetesOpnSenseController\Plugin\HAProxyDeclarative');
+$controller->registerPlugin('\KubernetesOpnSenseController\Plugin\HAProxyIngressProxy');
+$controller->registerPlugin('\KubernetesOpnSenseController\Plugin\DNSHAProxyIngressProxy');
+$controller->registerPlugin('\KubernetesOpnSenseController\Plugin\DNSServices');
+$controller->registerPlugin('\KubernetesOpnSenseController\Plugin\DNSIngresses');
 
 // start
 $controller->main();
