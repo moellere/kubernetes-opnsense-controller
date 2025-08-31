@@ -155,33 +155,32 @@ class HAProxyIngressProxyPlugin:
     # --- Generic OPNsense API Functions (can be moved to a shared module) ---
     def _get_opnsense_items(self, item_type):
         """Generic function to get items from OPNsense."""
-        # These endpoints are guesses
-        endpoint = f'/api/haproxy/{item_type}/search'
+        endpoint = f'/api/haproxy/settings/search_{item_type}s'
         try:
             response = self.opnsense_client.get(endpoint)
             return {row['name']: row for row in response.get('rows', []) if 'name' in row}
         except Exception as e:
-            # A 404 might just mean the endpoint guess was wrong.
             logging.error(f"Error getting HAProxy {item_type}s: {e}")
             return None
 
     def _add_opnsense_item(self, item_type, item_data):
-        endpoint = f'/api/haproxy/{item_type}/add'
+        endpoint = f'/api/haproxy/settings/add_{item_type}'
         try:
-            # The payload structure is a guess: { "acl": { ... } }
+            # The payload structure is a guess: { "item": { ... } }
+            # The API expects the payload to be wrapped in a key that matches the item type.
             self.opnsense_client.post(endpoint, {item_type: item_data})
         except Exception as e:
             logging.error(f"Failed to add {item_type} {item_data.get('name')}: {e}")
 
     def _update_opnsense_item(self, item_type, uuid, item_data):
-        endpoint = f'/api/haproxy/{item_type}/set/{uuid}'
+        endpoint = f'/api/haproxy/settings/set_{item_type}/{uuid}'
         try:
             self.opnsense_client.post(endpoint, {item_type: item_data})
         except Exception as e:
             logging.error(f"Failed to update {item_type} {item_data.get('name')}: {e}")
 
     def _delete_opnsense_item(self, item_type, uuid):
-        endpoint = f'/api/haproxy/{item_type}/del/{uuid}'
+        endpoint = f'/api/haproxy/settings/del_{item_type}/{uuid}'
         try:
             self.opnsense_client.post(endpoint)
         except Exception as e:

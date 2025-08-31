@@ -26,7 +26,9 @@ class DNSHAProxyIngressProxyPlugin:
         if current_aliases is None:
             return
 
-        self._reconcile_aliases(desired_aliases, current_aliases)
+        changes_made = self._reconcile_aliases(desired_aliases, current_aliases)
+        if changes_made:
+            self._apply_unbound_changes()
 
     def _get_desired_state(self, ingresses):
         """
@@ -70,8 +72,7 @@ class DNSHAProxyIngressProxyPlugin:
         """
         Gets the current host aliases from OPNsense Unbound DNS.
         """
-        # Endpoint is a guess
-        endpoint = '/api/unbound/settings/searchHostAlias'
+        endpoint = '/api/unbound/settings/search_host_alias'
         try:
             response = self.opnsense_client.get(endpoint)
             existing = {}
@@ -90,6 +91,7 @@ class DNSHAProxyIngressProxyPlugin:
         Reconciles DNS host aliases.
         """
         logging.info("Reconciling Unbound DNS host aliases...")
+        changes_made = False
 
         # Add/Update
         for key, data in desired.items():
@@ -98,14 +100,30 @@ class DNSHAProxyIngressProxyPlugin:
                 if current[key].get('target') != data['target']:
                     logging.info(f"Updating host alias for '{key}'")
                     uuid = current[key]['uuid']
-                    self.opnsense_client.post(f'/api/unbound/settings/setHostAlias/{uuid}', payload)
+                    self.opnsense_client.post(f'/api/unbound/settings/set_host_alias/{uuid}', payload)
+                    changes_made = True
             else:
                 logging.info(f"Adding new host alias for '{key}'")
-                self.opnsense_client.post('/api/unbound/settings/addHostAlias', payload)
+                self.opnsense_client.post('/api/unbound/settings/add_host_alias', payload)
+                changes_made = True
 
         # Delete
         orphaned = {k: v for k, v in current.items() if k not in desired and v.get('description', '').startswith('Managed by K8s')}
         for key, item in orphaned.items():
             logging.info(f"Deleting orphaned host alias: {key}")
             uuid = item['uuid']
-            self.opnsense_client.post(f'/api/unbound/settings/delHostAlias/{uuid}')
+            self.opnsense_client.post(f'/api/unbound/settings/del_host_alias/{uuid}')
+            changes_made = True
+
+        return changes_made
+
+    def _apply_unbound_changes(self):
+        """
+        Applies the Unbound DNS changes by calling the reconfigure endpoint.
+        """
+        logging.info("Applying Unbound DNS configuration changes for aliases...")
+        endpoint = '/api/unbound/service/reconfigure'
+        try:
+            self.opnsense_client.post(endpoint)
+        except Exception as e:
+            logging.error(f"Failed to apply Unbound DNS changes: {e}")

@@ -29,7 +29,11 @@ class DNSIngressesPlugin:
             return
 
         # 4. Reconcile
-        self._reconcile_overrides(desired_overrides, current_overrides)
+        changes_made = self._reconcile_overrides(desired_overrides, current_overrides)
+
+        # 5. Apply changes if any
+        if changes_made:
+            self._apply_unbound_changes()
 
     def _get_desired_state(self, ingresses):
         """
@@ -81,7 +85,7 @@ class DNSIngressesPlugin:
         """
         Gets the current host overrides from OPNsense Unbound DNS.
         """
-        endpoint = '/api/unbound/settings/searchHostOverride'
+        endpoint = '/api/unbound/settings/search_host_override'
         try:
             response = self.opnsense_client.get(endpoint)
             existing = {}
@@ -99,6 +103,7 @@ class DNSIngressesPlugin:
         Reconciles DNS host overrides.
         """
         logging.info("Reconciling Unbound DNS host overrides for Ingresses...")
+        changes_made = False
 
         # Add/Update
         for key, data in desired.items():
@@ -106,14 +111,30 @@ class DNSIngressesPlugin:
                 if current[key].get('ip') != data['ip']:
                     logging.info(f"Updating host override for '{key}'")
                     uuid = current[key]['uuid']
-                    self.opnsense_client.post(f'/api/unbound/settings/setHostOverride/{uuid}', {'host': data})
+                    self.opnsense_client.post(f'/api/unbound/settings/set_host_override/{uuid}', {'host': data})
+                    changes_made = True
             else:
                 logging.info(f"Adding new host override for '{key}'")
-                self.opnsense_client.post('/api/unbound/settings/addHostOverride', {'host': data})
+                self.opnsense_client.post('/api/unbound/settings/add_host_override', {'host': data})
+                changes_made = True
 
         # Delete
         orphaned = {k: v for k, v in current.items() if k not in desired and v.get('description', '').startswith('Managed by K8s Ingress')}
         for key, item in orphaned.items():
             logging.info(f"Deleting orphaned host override: {key}")
             uuid = item['uuid']
-            self.opnsense_client.post(f'/api/unbound/settings/delHostOverride/{uuid}')
+            self.opnsense_client.post(f'/api/unbound/settings/del_host_override/{uuid}')
+            changes_made = True
+
+        return changes_made
+
+    def _apply_unbound_changes(self):
+        """
+        Applies the Unbound DNS changes by calling the reconfigure endpoint.
+        """
+        logging.info("Applying Unbound DNS configuration changes for Ingresses...")
+        endpoint = '/api/unbound/service/reconfigure'
+        try:
+            self.opnsense_client.post(endpoint)
+        except Exception as e:
+            logging.error(f"Failed to apply Unbound DNS changes: {e}")
