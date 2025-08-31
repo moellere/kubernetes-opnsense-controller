@@ -22,14 +22,21 @@ spec:
           image: docker.io/travisghansen/kubernetes-opnsense-controller:latest
           env:
             - name: OPNSENSE_URL
-              value: "https://192.168.1.1"
-              # allow self-signed certs
-            - name: OPNSENSE_INSECURE
-              value: "true"
-            - name: OPNSENSE_USERNAME
-              value: "admin"
-            - name: OPNSENSE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: kubernetes-opnsense-controller
-                  key: opnsense-password
+                  key: opnsense-url
+            - name: CONTROLLER_NAMESPACE
+              value: "koc"
+            - name: CONTROLLER_CONFIGMAP
+              value: "kubernetes-opnsense-controller"
+            - name: OPNSENSE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kubernetes-opnsense-controller
+                  key: opnsense-api-key
+            - name: OPNSENSE_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kubernetes-opnsense-controller
+                  key: opnsense-api-secret
