@@ -1,3 +1,8 @@
+# v0.3.0
+Released 2025-08-31
+
+- Full implementation of plugins, courtesy of Jules.
+
 # v0.2.2
 
 Released 2025-08-30
