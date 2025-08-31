@@ -35,41 +35,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: build prep
-        id: build_prep
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
         run: |
-          git config --global --add safe.directory /app
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Build PHP application
-        uses: php-actions/composer@v6
-        with:
-          php_version: "8.2"
-          php_extensions: pcntl bz2 bcmath
-          command: buildphar
-
-      - name: Create GitHub Release
-        id: create_release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset
-        id: upload-release-asset
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./releases/kubernetes-opnsense-controller-${{ steps.source_info.outputs.SOURCE_TAG }}.phar
-          asset_name: kubernetes-opnsense-controller-${{ steps.source_info.outputs.SOURCE_TAG }}.phar
-          asset_content_type: application/zip
+      - name: Run unit tests
+        run: |
+          python -m unittest discover tests
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
