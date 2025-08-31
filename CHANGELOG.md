@@ -1,3 +1,10 @@
+# v0.2.0
+
+Released 2025-08-30
+
+- Wow, that's a lot
+- Complete refactor from PHP to Python.  Who still uses PHP?  Not me.
+
 # v0.1.2
 
 Released 2025-08-30
