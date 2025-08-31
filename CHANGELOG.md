@@ -1,3 +1,10 @@
+# v0.2.2
+
+Released 2025-08-30
+
+- Configmap syntax is a PiTA
+
+
 # v0.2.1
 
 Released 2025-08-30

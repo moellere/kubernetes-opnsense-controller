@@ -28,9 +28,9 @@ def get_controller_config(k8s_core_v1_api):
 
     try:
         cm = k8s_core_v1_api.read_namespaced_config_map(name, namespace)
-        config_yaml = cm.data.get('config.yaml')
+        config_yaml = cm.data.get('config')
         if not config_yaml:
-            logging.error(f"ConfigMap '{name}' does not have a 'config.yaml' key.")
+            logging.error(f"ConfigMap '{name}' does not have a 'config' key.")
             return None
 
         return yaml.safe_load(config_yaml)
