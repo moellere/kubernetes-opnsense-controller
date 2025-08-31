@@ -1,236 +1,106 @@
-![Image](https://img.shields.io/docker/pulls/travisghansen/kubernetes-pfsense-controller.svg)
-![Image](https://img.shields.io/github/actions/workflow/status/travisghansen/kubernetes-pfsense-controller/main.yml?branch=master&style=flat-square)
+# Kubernetes OPNsense Controller (Python Edition)
 
-# Intro
-[kubernetes-opnsense-controller (koc)](https://github.com/jules-labs/kubernetes-opnsense-controller) works hard to keep
-[OPNsense](https://www.opnsense.org/) and [Kubernetes](https://kubernetes.io/) in sync and harmony.  The primary focus is
-to facilitate a first-class Kubernetes cluster by integrating and/or implementing features that generally do not come
-with bare-metal installation(s).
+[![Docker Pulls](https://img.shields.io/docker/pulls/travisghansen/kubernetes-pfsense-controller.svg)](https://hub.docker.com/r/travisghansen/kubernetes-pfsense-controller)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/travisghansen/kubernetes-pfsense-controller/main.yml?branch=master&style=flat-square)](https://github.com/travisghansen/kubernetes-pfsense-controller/actions)
 
-This is generally achieved using the standard Kubernetes API along with the REST API for OPNsense.  Speaking broadly
-the Kubernetes API is `watch`ed and appropriate updates are sent to OPNsense via REST API calls along with
-appropriate reload/restart/update/sync actions to apply changes.
+This project has been rewritten in Python to serve as a Kubernetes controller that works hard to keep [OPNsense](https://www.opnsense.org/) and [Kubernetes](https://kubernetes.io/) in sync and harmony. The primary focus is to facilitate a first-class Kubernetes cluster by integrating and/or implementing features that generally do not come with bare-metal installations.
 
-Please note, this controller is not designed to run multiple instances simultaneously (ie: do NOT crank up the replicas).
+This is achieved by watching the standard Kubernetes API for resource changes and sending appropriate updates to OPNsense via its REST API.
 
-# Installation
+**Please note, this controller is not designed to run multiple instances simultaneously (i.e., do not increase the number of replicas).**
 
-Various files are available in the `deploy` directory of the project, alter to your needs and `kubectl apply`.
+## Installation
 
-## Support Matrix
+The controller is designed to be run as a container within your Kubernetes cluster.
 
-Generally speaking `koc` tracks the most recent versions of both kubernetes and OPNsense. Having said that reasonable
-attempts will be made to support older versions of both.
+### Container Image
 
-`koc` currently works with any `21.x+` version of OPNsense and probably very old kubernetes
-versions (known working up to `1.22`).
+A `Dockerfile` is provided to build the container image.
 
-# Plugins
-The controller is comprised of several plugins that are enabled/disabled/configured via a Kubernetes ConfigMap.  Details
-about each plugin follows below.
+```bash
+docker build -t kubernetes-opnsense-controller .
+```
 
-## metallb
-[MetalLB](https://metallb.universe.tf/) implements `LoadBalancer` type `Service`s in Kubernetes.  This is done via any
-combination of Layer2 or BGP type configurations.  Layer2 requires no integration with OPNsense, however, if you want to
-leverage the BGP implementation you need a BGP server along with neighbor configuration.  `koc` *dynamically* updates
-bgp neighbors for you in OPNsense by continually monitoring cluster `Node`s.
+### Deployment
 
-While this plugin is *named* `metallb` it does not **require** MetalLB to be installed or in use. It can be used with
-`kube-vip` or any other service that requires BGP peers/neighbors.
+Various example YAML files are available in the `deploy` directory of the project. You will need to adapt them to your needs and apply them with `kubectl apply`. The key components to configure are:
+- A `Deployment` to run the controller.
+- A `ConfigMap` to provide configuration for the controller and its plugins.
+- A `ServiceAccount` and necessary RBAC permissions (`Role`, `RoleBinding`) to allow the controller to access Kubernetes API resources.
 
-The plugin assumes you've already installed openbgp or frr and configured it as well as created a `group` to use with
-MetalLB.
+## Configuration
 
+The controller is configured via environment variables and a `ConfigMap`.
+
+### Environment Variables
+
+- `OPNSENSE_URL`: The base URL for the OPNsense API (e.g., `https://opnsense.example.com/api`).
+- `OPNSENSE_API_KEY`: The API key for authentication.
+- `OPNSENSE_API_SECRET`: The API secret for authentication.
+- `CONTROLLER_NAMESPACE`: The namespace where the controller is running and where it looks for its `ConfigMap` (default: `kube-system`).
+- `CONTROLLER_CONFIGMAP`: The name of the `ConfigMap` to load configuration from (default: `kubernetes-opnsense-controller`).
+
+### ConfigMap
+
+A `ConfigMap` is used to enable and configure the controller's plugins. The `ConfigMap` should contain a `config.yaml` key with the plugin configuration.
+
+**Example `config.yaml`:**
 ```yaml
-      metallb:
-        enabled: true
-        nodeLabelSelector:
-        nodeFieldSelector:
-        # pick 1 implementation
-        # bgp-implementation: openbgp
-        bgp-implementation: frr
-        options:
-          frr:
-            template:
-              peergroup: metallb
+metallb:
+  enabled: true
+  nodeLabelSelector:
+  nodeFieldSelector:
+  bgp-implementation: frr # or openbgp
+  options:
+    frr:
+      template:
+        peergroup: metallb
 
-          openbgp:
-            template:
-              md5sigkey:
-              md5sigpass:
-              groupname: metallb
-              row:
-                - parameters: announce all
-                  parmvalue:
+haproxy-declarative:
+  enabled: true
 ```
 
-## haproxy-declarative
-`haproxy-declarative` plugin allows you to declaratively create HAProxy frontend/backend definitions as `ConfigMap`
-resources in the cluster.  When declaring backends however, the pool of servers can/will be dynamically created/updated
-based on cluster nodes.  See [declarative-example.yaml](examples/declarative-example.yaml) for an example.
+## Plugins
 
-```yaml
-      haproxy-declarative:
-        enabled: true
+The controller is comprised of several plugins. The following have been implemented in the Python version:
+
+### MetalLB
+This plugin dynamically updates BGP neighbors in OPNsense by continually monitoring cluster `Node`s. It is useful for BGP-based `LoadBalancer` implementations like MetalLB or Kube-VIP. The plugin assumes you have a BGP server (like FRR) configured in OPNsense.
+
+### HAProxy Declarative
+This plugin allows you to declaratively create HAProxy frontend and backend definitions as `ConfigMap` resources in the cluster. See `examples/declarative-example.yaml` for an example of the `ConfigMap` structure.
+
+---
+
+*The following plugins from the original PHP version have not yet been implemented in the Python rewrite:*
+- `haproxy-ingress-proxy`
+- `opnsense-dns-services`
+- `opnsense-dns-ingresses`
+- `opnsense-dns-haproxy-ingress-proxy`
+
+## Development
+
+### Prerequisites
+- Python 3.8+
+- `pip`
+
+### Setup
+1. Clone the repository.
+2. Create a virtual environment: `python -m venv venv`
+3. Activate the virtual environment: `source venv/bin/activate`
+4. Install dependencies: `pip install -r requirements.txt`
+
+### Running Locally
+To run the controller locally for development, ensure you have a valid `kubeconfig` file and set the required environment variables (e.g., in a `.env` file).
+
+```bash
+# Make sure your KUBECONFIG environment variable is pointing to your cluster
+# and set the OPNsense credentials in a .env file.
+python src/main.py
 ```
 
-## haproxy-ingress-proxy
-`haproxy-ingress-proxy` plugin allows you to mirror cluster ingress rules handled by an ingress controller to HAProxy
-running on OPNsense.  If you run OPNsense on the network edge with non-cluster services already running, you now can
-dynamically inject new rules to route traffic into your cluster while simultaneously running non-cluster services.
-
-To achieve this goal, new 'shared' HAProxy frontends are created and attached to an **existing** HAProxy frontend.  Each
-created frontend should also set an existing backend.  Note that existing frontend(s)/backend(s) can be created manually
-or using the `haproxy-declarative` plugin.
-
-When creating the parent frontend(s) please note that the selected type should be `http / https(offloading)` to fully
-support the feature. If type `ssl / https(TCP mode)` is selected (`SSL Offloading` may be selected or not in the
-`External address` table) `sni` is used for routing logic and **CANNOT** support path-based logic which implies a 1:1
-mapping between `host` entries and backing `service`s. Type `tcp` will not work and any `Ingress` resources that would
-be bound to a frontend of this type are ignored.
-
-Combined with `haproxy-declarative` you can create a dynamic backend service (ie: your ingress controller) and
-subsequently dynamic frontend services based off of cluster ingresses.  This is generally helpful when you cannot or do
-not for whatever reason create wildcard frontend(s) to handle incoming traffic in HAProxy on OPNsense.
-
-Optionally, on the ingress resources you can set the following annotations: `haproxy-ingress-proxy.opnsense.org/frontend`
-and `haproxy-ingress-proxy.opnsense.org/backend` to respectively set the frontend and backend to override the defaults.
-
-In advanced scenarios it is possible to provide a template definition of the shared frontend using the
-`haproxy-ingress-proxy.opnsense.org/frontendDefinitionTemplate` annotation.
-
-```yaml
-      haproxy-ingress-proxy:
-        enabled: true
-        ingressLabelSelector:
-        ingressFieldSelector:
-        # works in conjunction with the ingress annotation 'haproxy-ingress-proxy.opnsense.org/enabled'
-        # if defaultEnabled is empty or true, you can disable specific ingresses by setting the annotation to false
-        # if defaultEnabled is false, you can enable specific ingresses by setting the annotation to true
-        defaultEnabled: true
-        # can optionally be comma-separated list if you want the same ingress to be served by multiple frontends
-        defaultFrontend: http-80
-        defaultBackend: traefik
-        #allowedHostRegex: "/.*/"
+### Running Tests
+To run the unit tests:
+```bash
+python -m unittest discover tests
 ```
-
-## DNS Helpers
-`koc` provides various options to manage DNS entries in OPNsense based on cluster state.  Note that these options can be
-used in place of or in conjunction with [external-dns](https://github.com/kubernetes-incubator/external-dns) to support
-powerful setups/combinations.
-
-### opnsense-dns-services
-`opnsense-dns-services` watches for services of type `LoadBalancer` that have the annotation `dns.opnsense.org/hostname`
-with the value of the desired hostname (optionally you may specifiy a comma-separated list of hostnames).  `koc` will
-create the DNS entry in unbound/dnsmasq.  Note that to actually get  an IP on these services you'll likely need
-`MetalLB` deployed in the cluster (regardless of the `metallb` plugin running or not).
-
-```yaml
-      opnsense-dns-services:
-        enabled: true
-        serviceLabelSelector:
-        serviceFieldSelector:
-        #allowedHostRegex: "/.*/"
-        dnsBackends:
-          dnsmasq:
-            enabled: true
-          unbound:
-            enabled: true
-```
-
-### opnsense-dns-ingresses
-`opnsense-dns-ingresses` watches ingresses and automatically creates DNS entries in unbound/dnsmasq. This requires proper
-support from the ingress controller to set IPs on the ingress resources.
-
-```yaml
-      opnsense-dns-ingresses:
-        enabled: true
-        ingressLabelSelector:
-        ingressFieldSelector:
-        # works in conjunction with the ingress annotation 'dns.opnsense.org/enabled'
-        # if defaultEnabled is empty or true, you can disable specific ingresses by setting the annotation to false
-        # if defaultEnabled is false, you can enable specific ingresses by setting the annotation to true
-        defaultEnabled: true
-        #allowedHostRegex: "/.*/"
-        dnsBackends:
-          dnsmasq:
-            enabled: true
-          unbound:
-            enabled: true
-```
-
-### opnsense-dns-haproxy-ingress-proxy
-`opnsense-dns-haproxy-ingress-proxy` monitors the HAProxy rules created by the `haproxy-ingress-proxy` plugin and creates
-host aliases for each entry.  To do so you create an arbitrary host in unbound/dnsmasq (something like
-`<frontend name>.k8s`) and bind that host to the frontend through the config option `frontends.<frontend name>`.  Any
-proxy rules created for that frontend will now automatically get added as aliases to the configured `hostname`.  Make
-sure the static `hostname` created in your DNS service of choice points to the/an IP bound to the corresponding
-`frontend`.
-
-```yaml
-      opnsense-dns-haproxy-ingress-proxy:
-        enabled: true
-        # NOTE: this regex is in *addition* to the regex applied to the haproxy-ingress-proxy plugin
-        #allowedHostRegex: "/.*/"
-        dnsBackends:
-          dnsmasq:
-            enabled: true
-          unbound:
-            enabled: true
-        frontends:
-          http-80:
-            hostname: http-80.k8s
-          primary_frontend_name2:
-            hostname: primary_frontend_name2.k8s
-```
-
-# Notes
-`regex` parameters are passed through php's `preg_match()` method, you can test your syntax using that.  Also note that
-if you want to specify a regex ending (`$`), you must escape it in yaml as 2 `$`
-(ie: `#allowedHostRegex: "/.example.com$$/"`).
-
-`koc` stores it's stateful data in the cluster as a ConfigMap (kube-system.kubernetes-opnsense-controller-store by
-default).  You can review the data there to gain understanding into what the controller is managing.
-
-You may need/want to bump up the `webConfigurator` setting for `Max Processes` to ensure enough simultaneous connections
-can be established.  Each `koc` instance will only require 1 process (ie: access to the API is serialized by `koc`).
-
-## Links
- * https://medium.com/@ipuustin/using-metallb-as-kubernetes-load-balancer-with-ubiquiti-edgerouter-7ff680e9dca3
- * https://miek.nl/2017/december/16/a-k8s-lb-using-arp/
-
-# TODO
- 1. base64 advanced fields (haproxy)
- 1. taint haproxy config so it shows 'apply' button in interface?
- 1. _index and id management
- 1. ssl certs name/serial
- 1. build docker images
- 1. create manifests
- 1. ensure pfsync items are pushed as appropriate
- 1. perform config rollbacks when appropriate?
- 1. validate configuration(s) to ensure proper schema
-
-# Development
-
-## check store values
-
-```
-kubectl -n kube-system get configmaps kubernetes-opnsense-controller-store -o json | jq -crM '.data."haproxy-declarative"' | jq .
-kubectl -n kube-system get configmaps kubernetes-opnsense-controller-store -o json | jq -crM '.data."metallb"' | jq .
-...
-```
-
-## HAProxy
-The OPNsense API for HAProxy is used to manage the configuration.
-
-### Links
- * https://docs.opnsense.org/development/api/plugins/haproxy.html
- * https://github.com/opnsense/plugins/blob/master/net/haproxy/src/opnsense/mvc/app/models/OPNsense/HAProxy/HAProxy.xml
-
-## Links
- * https://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.5/
- * https://github.com/schematicon/validator-php
- * https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/
- * https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
- * https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
- * https://github.com/MacFJA/PharBuilder
