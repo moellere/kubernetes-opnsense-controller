@@ -58,22 +58,25 @@ class TestDNSHAProxyIngressProxyPlugin(unittest.TestCase):
         self.plugin.run()
 
         # --- Assert ---
-        self.opnsense_client.get.assert_called_once_with('/api/unbound/settings/searchHostAlias')
+        self.opnsense_client.get.assert_called_once_with('/api/unbound/settings/search_host_alias')
 
         calls = self.opnsense_client.post.call_args_list
-        self.assertEqual(len(calls), 3)
+        self.assertEqual(len(calls), 4)
 
         # Correctly access positional arguments from the mock call
-        add_call = next(c for c in calls if c.args[0] == '/api/unbound/settings/addHostAlias')
+        add_call = next(c for c in calls if c.args[0] == '/api/unbound/settings/add_host_alias')
         self.assertEqual(add_call.args[1]['alias']['host'], 'add.example.com')
         self.assertEqual(add_call.args[1]['alias']['target'], 'http-80.k8s')
 
-        update_call = next(c for c in calls if c.args[0] == '/api/unbound/settings/setHostAlias/uuid-update')
+        update_call = next(c for c in calls if c.args[0] == '/api/unbound/settings/set_host_alias/uuid-update')
         self.assertEqual(update_call.args[1]['alias']['host'], 'update.example.com')
         self.assertEqual(update_call.args[1]['alias']['target'], 'https-443.k8s')
 
-        delete_call = next(c for c in calls if c.args[0] == '/api/unbound/settings/delHostAlias/uuid-delete')
+        delete_call = next(c for c in calls if c.args[0] == '/api/unbound/settings/del_host_alias/uuid-delete')
         self.assertIsNotNone(delete_call)
+
+        reconfigure_call = next(c for c in calls if c.args[0] == '/api/unbound/service/reconfigure')
+        self.assertIsNotNone(reconfigure_call)
 
 if __name__ == '__main__':
     unittest.main()
