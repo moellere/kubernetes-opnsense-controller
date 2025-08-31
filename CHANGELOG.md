@@ -1,3 +1,8 @@
+# v0.3.1
+Released 2025-08-31
+
+- Add version file.
+
 # v0.3.0
 Released 2025-08-31
 

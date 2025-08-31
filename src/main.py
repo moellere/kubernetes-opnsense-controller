@@ -12,6 +12,7 @@ from src.plugins.haproxy_ingress_proxy import HAProxyIngressProxyPlugin
 from src.plugins.dns_services import DNSServicesPlugin
 from src.plugins.dns_ingresses import DNSIngressesPlugin
 from src.plugins.dns_haproxy_ingress_proxy import DNSHAProxyIngressProxyPlugin
+from .version import __version__ 
 
 # --- Configuration ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -60,7 +61,7 @@ def watch_resources(resource_func, plugins):
 
 # --- Initialization ---
 def main():
-    logging.info("Starting Kubernetes OPNsense Controller...")
+    logging.info("Starting Kubernetes OPNsense Controller {__version__}")
 
     try:
         config.load_incluster_config()
