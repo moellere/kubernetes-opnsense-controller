@@ -19,7 +19,7 @@ spec:
       serviceAccountName: kubernetes-opnsense-controller
       containers:
         - name: kubernetes-opnsense-controller
-          image: docker.io/travisghansen/kubernetes-opnsense-controller:latest
+          image: docker.io/moellere/kubernetes-opnsense-controller:v0.3.1
           env:
             - name: OPNSENSE_URL
               valueFrom:
